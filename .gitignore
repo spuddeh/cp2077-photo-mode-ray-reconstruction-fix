@@ -3,7 +3,15 @@ CLAUDE.md
 
 # Build output
 plugin/build/
+probe/plugin/build/
+
+# Nexus page images
+images/
+
+# Release zips
+*.zip
 
 # Editor
 .vscode/
+.history/
 *.log
