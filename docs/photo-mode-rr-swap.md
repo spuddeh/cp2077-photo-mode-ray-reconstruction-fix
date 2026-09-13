@@ -92,7 +92,8 @@ options alone cannot bring RR back.
 | `OnPhotoModeOpened` | `0x1d533e0` | `2954628956` | below |
 | `OnPhotoModeUIVisibilityChanged` | `0x1d537d0` | `3553368820` | below |
 
-The function names in the first three rows are descriptive, not symbols from the game. That `+0x40c`
+All five function names are descriptive, not symbols from the game. The two handlers are native
+functions the engine runs as jobs; they are not RTTI-registered functions and scripts cannot reach them. That `+0x40c`
 is the frame generation flag is inferred from the feature index and the `DLSSFrameGen/Enable` change.
 
 `OnPhotoModeOpened` (event byte `[rcx]` set = opened):
@@ -135,7 +136,9 @@ Photo Mode code that restores RR, which fits the restore firing as the UI hides 
 
 ## 6. What the plugin patches (static)
 
-The plugin replaces the four RR-off instructions and leaves everything else:
+**Method:** a RED4ext plugin that patches bytes once, when RED4ext loads it. It does not hook RTTI,
+register script functions or install detours, and none of its code runs after load. When the game later
+runs the two handlers, it runs them with four instructions replaced:
 
 | Function | Offset | Original | Replacement |
 | --- | --- | --- | --- |

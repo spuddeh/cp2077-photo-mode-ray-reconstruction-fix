@@ -16,7 +16,9 @@ Everything else those handlers do stays, including switching frame generation of
 restoring it on exit. With Ray Reconstruction switched off in the graphics settings, photos are taken with
 NRD as usual.
 
-Both functions are resolved by RED4ext hash and checked byte for byte before anything is written. On a
+It does this as a RED4ext plugin that patches the game's code once at load: no RTTI or script hooks, and
+nothing runs per frame. Both functions are resolved by RED4ext hash and checked byte for byte before
+anything is written. On a
 game build where either one differs, the plugin logs a line and patches nothing.
 
 ## Known issue: banded photos at high capture sample counts
