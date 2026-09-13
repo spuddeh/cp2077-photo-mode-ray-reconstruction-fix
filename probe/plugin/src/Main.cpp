@@ -276,6 +276,81 @@ uint64_t DetourSetConstants(void* aManager, uint32_t aFrame)
     return result;
 }
 
+// ---- The capture frame executor, dumped every frame while a capture runs ----
+
+// 0x1c6bf10 on 2.31: runs a capture frame. Its first argument is the executor object. Dumping that
+// object each capture frame and diffing the dumps offline shows which fields count samples and passes.
+constexpr uint32_t kHashCaptureExecutor = 1857241502;
+constexpr uint8_t kCaptureExecutorPrologue[] = {0x4c, 0x89, 0x4c, 0x24, 0x20, 0x4c, 0x89, 0x44, 0x24, 0x18};
+constexpr size_t kExecutorDumpBytes = 0x300;
+constexpr uintptr_t kRvaRendererGlobal = 0x3427c00;
+
+using CaptureExecutorFn = uint64_t (*)(void* aExecutor, void* aContext, void* aArg3, void* aArg4);
+CaptureExecutorFn g_originalExecutor = nullptr;
+std::atomic<uint64_t> g_executorCalls{0};
+
+bool StreamlineInCaptureMode()
+{
+    __try
+    {
+        const auto renderer = *reinterpret_cast<uintptr_t*>(g_imageBase + kRvaRendererGlobal);
+        if (!renderer)
+        {
+            return false;
+        }
+        const auto sl = *reinterpret_cast<uintptr_t*>(renderer + kRendererStreamline);
+        return sl && *reinterpret_cast<uint8_t*>(sl + kSlDlssA) == 1 && *reinterpret_cast<uint8_t*>(sl + kSlDlssB) == 0;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        return false;
+    }
+}
+
+bool DumpBytes(void* aAt, size_t aLen, char* aOut)
+{
+    static const char kHex[] = "0123456789abcdef";
+    __try
+    {
+        const auto* p = static_cast<uint8_t*>(aAt);
+        for (size_t i = 0; i < aLen; ++i)
+        {
+            aOut[i * 2] = kHex[p[i] >> 4];
+            aOut[i * 2 + 1] = kHex[p[i] & 0xf];
+        }
+        aOut[aLen * 2] = 0;
+        return true;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        return false;
+    }
+}
+
+uint64_t DetourCaptureExecutor(void* aExecutor, void* aContext, void* aArg3, void* aArg4)
+{
+    const auto result = g_originalExecutor(aExecutor, aContext, aArg3, aArg4);
+    const auto call = ++g_executorCalls;
+    const bool capturing = StreamlineInCaptureMode();
+    if (capturing)
+    {
+        g_constantsBudget = 90;
+    }
+    if (!capturing && g_constantsBudget.load() <= 0 && call % 1800 != 1)
+    {
+        return result;
+    }
+    static char hex[kExecutorDumpBytes * 2 + 1];
+    if (aExecutor && DumpBytes(aExecutor, kExecutorDumpBytes, hex))
+    {
+        char head[160];
+        std::snprintf(head, sizeof(head), "exec call %llu capturing %d exec %p ctx %p a3 %p a4 %p | ",
+                      static_cast<unsigned long long>(call), capturing, aExecutor, aContext, aArg3, aArg4);
+        Log(std::string(head) + hex);
+    }
+    return result;
+}
+
 uint64_t* DetourBuildFeatureMask(void* aRenderer, uint64_t* aOutMask, void* aView, void* aFrame)
 {
     const auto result = g_original(aRenderer, aOutMask, aView, aFrame);
@@ -332,8 +407,11 @@ void Install()
     Log("photo mode RR probe hooked the feature mask builder - one line per view whenever its RR inputs change");
 
     const auto constants = ResolveByHash(kHashSetConstants);
+    const auto* constantsBytes = reinterpret_cast<uint8_t*>(constants);
+    const bool constantsHookedAlready = constants && (constantsBytes[0] == 0xe9 || constantsBytes[0] == 0xff);
     if (!constants || constants - g_imageBase != 0x78933c ||
-        std::memcmp(reinterpret_cast<void*>(constants), kSetConstantsPrologue, sizeof(kSetConstantsPrologue)) != 0)
+        (!constantsHookedAlready &&
+         std::memcmp(reinterpret_cast<void*>(constants), kSetConstantsPrologue, sizeof(kSetConstantsPrologue)) != 0))
     {
         Log("Streamline constants function did not match 2.31 - constants logging off");
         return;
@@ -346,13 +424,31 @@ void Install()
     }
     Log("hooked the Streamline constants function - every call is logged while a capture frame has been seen recently");
 }
+
+void InstallExecutorHook()
+{
+    const auto executor = ResolveByHash(kHashCaptureExecutor);
+    if (!executor || executor - g_imageBase != 0x1c6bf10 ||
+        std::memcmp(reinterpret_cast<void*>(executor), kCaptureExecutorPrologue, sizeof(kCaptureExecutorPrologue)) != 0)
+    {
+        Log("capture executor did not match 2.31 - executor dumps off");
+        return;
+    }
+    if (!g_sdk->hooking->Attach(g_handle, reinterpret_cast<void*>(executor), &DetourCaptureExecutor,
+                                reinterpret_cast<void**>(&g_originalExecutor)))
+    {
+        Log("capture executor hook attach failed - executor dumps off");
+        return;
+    }
+    Log("hooked the capture executor - its object is dumped every capture frame");
+}
 } // namespace
 
 RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::v1::PluginInfo* aInfo)
 {
     aInfo->name = L"PhotoModeRRProbe";
     aInfo->author = L"Spuddeh";
-    aInfo->version = RED4EXT_V1_SEMVER(0, 2, 0);
+    aInfo->version = RED4EXT_V1_SEMVER(0, 3, 0);
     aInfo->runtime = RED4EXT_V1_RUNTIME_VERSION_INDEPENDENT;
     aInfo->sdk = RED4EXT_V1_SDK_VERSION_CURRENT;
 }
@@ -370,12 +466,17 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::v1::PluginHandle aHandle,
         g_sdk = aSdk;
         g_handle = aHandle;
         Install();
+        InstallExecutorHook();
     }
     else if (aReason == RED4ext::v1::EMainReason::Unload)
     {
         if (g_original)
         {
             aSdk->hooking->Detach(aHandle, reinterpret_cast<void*>(g_imageBase + 0x1d49540));
+        }
+        if (g_originalExecutor)
+        {
+            aSdk->hooking->Detach(aHandle, reinterpret_cast<void*>(g_imageBase + 0x1c6bf10));
         }
         if (g_originalSetConstants)
         {
