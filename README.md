@@ -47,6 +47,11 @@ changes nothing in the game. It logs:
 The log is RED4ext's plugin log, `red4ext/logs/photomoderrprobe-*.log`. It is a development tool, not
 for players: it logs heavily during captures and works on game 2.31 only.
 
+## Technical notes
+
+[`docs/`](docs/README.md) covers how Photo Mode switches Ray Reconstruction off, how a photo is captured
+frame by frame, the banding measurements, and the probe, with addresses and evidence.
+
 ## Build
 
 See `plugin/CMakeLists.txt` and `probe/plugin/CMakeLists.txt`. RED4ext.SDK is header-only; point the
