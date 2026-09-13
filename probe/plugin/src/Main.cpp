@@ -11,6 +11,7 @@
 #include <Windows.h>
 #include <RED4ext/RED4ext.hpp>
 
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -177,6 +178,104 @@ std::string Describe(const Snapshot& s)
     return buf;
 }
 
+// ---- Streamline constants, logged frame by frame around a Photo Mode capture ----
+
+// The function that fills and sends sl::Constants (0x78933c on 2.31). Its first argument is the
+// Streamline manager; the struct it sends lives at manager+0x200 and follows sl_consts.h exactly.
+constexpr uint32_t kHashSetConstants = 2155221092;
+constexpr uint8_t kSetConstantsPrologue[] = {0x40, 0x55, 0x53, 0x56, 0x57, 0x41, 0x56, 0x48, 0x8d, 0x6c, 0x24, 0xc9};
+
+constexpr size_t kConsts = 0x200;             // sl::Constants, 32-byte BaseStructure header first
+constexpr size_t kViewToClip = 0x20;          // float4x4, rows
+constexpr size_t kClipToPrevClip = 0xe0;      // float4x4
+constexpr size_t kJitter = 0x160;             // float2
+constexpr size_t kMvecScale = 0x168;          // float2
+constexpr size_t kPinhole = 0x170;            // float2
+constexpr size_t kCameraPos = 0x178;          // float3
+constexpr size_t kFov = 0x1b0;                // float
+constexpr size_t kAspect = 0x1b4;             // float
+constexpr size_t kFlags = 0x1bc;              // depthInverted, cameraMotionIncluded, mv3D, reset
+constexpr size_t kMgrHistoryValid = 0x1f0;    // reset is sent as !this
+constexpr size_t kMgrFlag1f2 = 0x1f2;
+
+using SetConstantsFn = uint64_t (*)(void* aManager, uint32_t aFrame);
+SetConstantsFn g_originalSetConstants = nullptr;
+
+std::atomic<int> g_constantsBudget{0};    // lines left to log; refilled while a capture frame is seen
+std::atomic<int> g_lastKind{-1};
+std::atomic<uint64_t> g_constantsCalls{0};
+
+struct ConstantsSnapshot
+{
+    float viewToClip[16] = {};
+    float clipToPrev[16] = {};
+    float jitter[2] = {}, mvec[2] = {}, pinhole[2] = {}, pos[3] = {};
+    float fov = 0, aspect = 0;
+    uint8_t flags[4] = {};
+    uint8_t historyValid = 0, flag1f2 = 0, dlssA = 0, dlssB = 0, rrAvail = 0;
+};
+
+bool ReadConstants(void* aManager, ConstantsSnapshot& aOut)
+{
+    __try
+    {
+        const auto m = reinterpret_cast<uintptr_t>(aManager);
+        const auto c = m + kConsts;
+        std::memcpy(aOut.viewToClip, reinterpret_cast<void*>(c + kViewToClip), 64);
+        std::memcpy(aOut.clipToPrev, reinterpret_cast<void*>(c + kClipToPrevClip), 64);
+        std::memcpy(aOut.jitter, reinterpret_cast<void*>(c + kJitter), 8);
+        std::memcpy(aOut.mvec, reinterpret_cast<void*>(c + kMvecScale), 8);
+        std::memcpy(aOut.pinhole, reinterpret_cast<void*>(c + kPinhole), 8);
+        std::memcpy(aOut.pos, reinterpret_cast<void*>(c + kCameraPos), 12);
+        aOut.fov = *reinterpret_cast<float*>(c + kFov);
+        aOut.aspect = *reinterpret_cast<float*>(c + kAspect);
+        std::memcpy(aOut.flags, reinterpret_cast<void*>(c + kFlags), 4);
+        aOut.historyValid = *reinterpret_cast<uint8_t*>(m + kMgrHistoryValid);
+        aOut.flag1f2 = *reinterpret_cast<uint8_t*>(m + kMgrFlag1f2);
+        aOut.dlssA = *reinterpret_cast<uint8_t*>(m + kSlDlssA);
+        aOut.dlssB = *reinterpret_cast<uint8_t*>(m + kSlDlssB);
+        aOut.rrAvail = *reinterpret_cast<uint8_t*>(m + kSlRrAvailable);
+        return true;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        return false;
+    }
+}
+
+uint64_t DetourSetConstants(void* aManager, uint32_t aFrame)
+{
+    const auto result = g_originalSetConstants(aManager, aFrame);
+    const auto call = ++g_constantsCalls;
+
+    const bool baseline = call <= 3 || call % 900 == 0;
+    if (!baseline && g_constantsBudget.load() <= 0)
+    {
+        return result;
+    }
+    --g_constantsBudget;
+
+    ConstantsSnapshot s;
+    if (!ReadConstants(aManager, s))
+    {
+        return result;
+    }
+    // Rows: [r][c] = m[r*4+c]. The projection's jitter/offset terms sit in row 2, translation in row 3.
+    const auto* v = s.viewToClip;
+    const auto* p = s.clipToPrev;
+    char buf[640];
+    std::snprintf(buf, sizeof(buf),
+                  "consts call %llu frame %u kind %d | reset=%d historyValid=%d f1f2=%d camMotion=%d mv3D=%d depthInv=%d | "
+                  "dlss=%d/%d rr=%d | jitter=%.4f,%.4f mvec=%.1f,%.1f pinhole=%.4f,%.4f | pos=%.4f,%.4f,%.4f fov=%.4f aspect=%.4f | "
+                  "v2c diag=%.4f,%.4f r2=%.5f,%.5f | c2p diag=%.5f,%.5f r2=%.5f,%.5f r3=%.5f,%.5f",
+                  static_cast<unsigned long long>(call), aFrame, g_lastKind.load(), s.flags[3], s.historyValid, s.flag1f2,
+                  s.flags[1], s.flags[2], s.flags[0], s.dlssA, s.dlssB, s.rrAvail, s.jitter[0], s.jitter[1], s.mvec[0],
+                  s.mvec[1], s.pinhole[0], s.pinhole[1], s.pos[0], s.pos[1], s.pos[2], s.fov, s.aspect, v[0], v[5], v[8],
+                  v[9], p[0], p[5], p[8], p[9], p[12], p[13]);
+    Log(buf);
+    return result;
+}
+
 uint64_t* DetourBuildFeatureMask(void* aRenderer, uint64_t* aOutMask, void* aView, void* aFrame)
 {
     const auto result = g_original(aRenderer, aOutMask, aView, aFrame);
@@ -184,6 +283,11 @@ uint64_t* DetourBuildFeatureMask(void* aRenderer, uint64_t* aOutMask, void* aVie
     Snapshot snap;
     if (Capture(aRenderer, aOutMask, aView, aFrame, snap))
     {
+        g_lastKind = snap.kind;
+        if (snap.kind == 4)
+        {
+            g_constantsBudget = 90;  // keeps logging for a stretch after the last capture frame
+        }
         std::string line = Describe(snap);
         std::lock_guard lock(g_mutex);
         ++g_calls;
@@ -226,6 +330,21 @@ void Install()
         return;
     }
     Log("photo mode RR probe hooked the feature mask builder - one line per view whenever its RR inputs change");
+
+    const auto constants = ResolveByHash(kHashSetConstants);
+    if (!constants || constants - g_imageBase != 0x78933c ||
+        std::memcmp(reinterpret_cast<void*>(constants), kSetConstantsPrologue, sizeof(kSetConstantsPrologue)) != 0)
+    {
+        Log("Streamline constants function did not match 2.31 - constants logging off");
+        return;
+    }
+    if (!g_sdk->hooking->Attach(g_handle, reinterpret_cast<void*>(constants), &DetourSetConstants,
+                                reinterpret_cast<void**>(&g_originalSetConstants)))
+    {
+        Log("constants hook attach failed - constants logging off");
+        return;
+    }
+    Log("hooked the Streamline constants function - every call is logged while a capture frame has been seen recently");
 }
 } // namespace
 
@@ -233,7 +352,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::v1::PluginInfo* aInfo)
 {
     aInfo->name = L"PhotoModeRRProbe";
     aInfo->author = L"Spuddeh";
-    aInfo->version = RED4EXT_V1_SEMVER(0, 1, 0);
+    aInfo->version = RED4EXT_V1_SEMVER(0, 2, 0);
     aInfo->runtime = RED4EXT_V1_RUNTIME_VERSION_INDEPENDENT;
     aInfo->sdk = RED4EXT_V1_SDK_VERSION_CURRENT;
 }
@@ -252,9 +371,16 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::v1::PluginHandle aHandle,
         g_handle = aHandle;
         Install();
     }
-    else if (aReason == RED4ext::v1::EMainReason::Unload && g_original)
+    else if (aReason == RED4ext::v1::EMainReason::Unload)
     {
-        aSdk->hooking->Detach(aHandle, reinterpret_cast<void*>(g_imageBase + 0x1d49540));
+        if (g_original)
+        {
+            aSdk->hooking->Detach(aHandle, reinterpret_cast<void*>(g_imageBase + 0x1d49540));
+        }
+        if (g_originalSetConstants)
+        {
+            aSdk->hooking->Detach(aHandle, reinterpret_cast<void*>(g_imageBase + 0x78933c));
+        }
     }
     return true;
 }
