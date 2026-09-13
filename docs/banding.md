@@ -93,7 +93,7 @@ settings still banded at 7 (reported).
 | DLL build | 310.9.0 and 310.9.1 both band on preset F and are clean on preset E |
 | This plugin | The unmodified game bands too (reported) |
 
-Switching RR off removes the bands, but that capture also runs a different DLSS mode and sends no
+Switching RR off removes the bands, but that capture also runs a different DLSS mode and logged no
 Streamline constants, so it changes more than the denoiser.
 
 ## Workarounds

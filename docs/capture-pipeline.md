@@ -102,9 +102,11 @@ In the unmodified game, with RR on in the settings, capture frames have the RR-a
 frame feature bit `0x46` set: **the game frames with NRD and captures with RR.** How that is switched is
 covered in [photo-mode-rr-swap.md](photo-mode-rr-swap.md).
 
-With RR switched off in the graphics settings, capture frames run with RR unavailable, the DLSS mode
-bytes at `0/1` instead of `1/0`, and no Streamline constants are sent for them. That capture is
-therefore different in more than the denoiser.
+With RR switched off in the graphics settings, capture frames run with RR unavailable and the DLSS mode
+bytes at `0/1` instead of `1/0`, and no Streamline constants were logged for them even though the probe's
+constants logging was active (it switches on for 90 calls whenever a kind-4 frame is seen). A missing
+line is weaker evidence than a logged value, so "not sent" is inferred. Either way, that capture differs
+in more than the denoiser.
 
 ## 6. IGPT's capture path (measured, without this plugin)
 
@@ -123,7 +125,7 @@ Two IGPT photos (1920x1080 x2 and 2560x1440 x1), with this plugin not installed:
 - neither photo bands
 - IGPT's PNG output is 8-bit RGBA with no colour-space chunk, so SDR
 
-Its per-frame jitter was not logged. Whether IGPT captures with RR while this plugin is installed is not
+No constants lines were logged during these captures either, so their jitter is not known. Whether IGPT captures with RR while this plugin is installed is not
 tested.
 
 ## Open questions
