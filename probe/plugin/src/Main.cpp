@@ -278,14 +278,16 @@ uint64_t DetourSetConstants(void* aManager, uint32_t aFrame)
 
 // ---- The capture frame executor, dumped every frame while a capture runs ----
 
-// 0x1c6bf10 on 2.31: runs a capture frame. Its first argument is the executor object. Dumping that
+// 0x1c6bf10 on 2.31: runs a capture frame. It reads stack arguments up to the seventh, so the hook
+// forwards eight 8-byte slots untouched. Its first argument is the executor object. Dumping that
 // object each capture frame and diffing the dumps offline shows which fields count samples and passes.
 constexpr uint32_t kHashCaptureExecutor = 1857241502;
 constexpr uint8_t kCaptureExecutorPrologue[] = {0x4c, 0x89, 0x4c, 0x24, 0x20, 0x4c, 0x89, 0x44, 0x24, 0x18};
 constexpr size_t kExecutorDumpBytes = 0x300;
 constexpr uintptr_t kRvaRendererGlobal = 0x3427c00;
 
-using CaptureExecutorFn = uint64_t (*)(void* aExecutor, void* aContext, void* aArg3, void* aArg4);
+using CaptureExecutorFn = uint64_t (*)(void* aExecutor, void* aContext, void* aArg3, void* aArg4, uint64_t aArg5,
+                                       uint64_t aArg6, uint64_t aArg7, uint64_t aArg8);
 CaptureExecutorFn g_originalExecutor = nullptr;
 std::atomic<uint64_t> g_executorCalls{0};
 
@@ -327,9 +329,10 @@ bool DumpBytes(void* aAt, size_t aLen, char* aOut)
     }
 }
 
-uint64_t DetourCaptureExecutor(void* aExecutor, void* aContext, void* aArg3, void* aArg4)
+uint64_t DetourCaptureExecutor(void* aExecutor, void* aContext, void* aArg3, void* aArg4, uint64_t aArg5,
+                               uint64_t aArg6, uint64_t aArg7, uint64_t aArg8)
 {
-    const auto result = g_originalExecutor(aExecutor, aContext, aArg3, aArg4);
+    const auto result = g_originalExecutor(aExecutor, aContext, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8);
     const auto call = ++g_executorCalls;
     const bool capturing = StreamlineInCaptureMode();
     if (capturing)
