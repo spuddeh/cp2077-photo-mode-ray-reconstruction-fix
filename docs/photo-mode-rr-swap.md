@@ -93,7 +93,8 @@ options alone cannot bring RR back.
 | `OnPhotoModeUIVisibilityChanged` | `0x1d537d0` | `3553368820` | below |
 
 All five function names are descriptive, not symbols from the game. The two handlers are native
-functions the engine runs as jobs; they are not RTTI-registered functions and scripts cannot reach them. That `+0x40c`
+functions the engine runs through job tables (`0x31333d8` and `0x3133328`). No script calls them, and
+the plugin reaches them through the address database, not through RTTI. That `+0x40c`
 is the frame generation flag is inferred from the feature index and the `DLSSFrameGen/Enable` change.
 
 `OnPhotoModeOpened` (event byte `[rcx]` set = opened):
