@@ -13,8 +13,8 @@ again. What you frame is not what the photo renders.
 It removes the Ray Reconstruction switch-off calls from the two native Photo Mode handlers that make
 them, so Ray Reconstruction stays as you had it in gameplay, while framing and while capturing.
 Everything else those handlers do stays, including switching frame generation off in Photo Mode and
-restoring it on exit. With Ray Reconstruction off, or on hardware without it, Photo Mode behaves as in
-the unmodified game.
+restoring it on exit. With Ray Reconstruction switched off in the graphics settings, photos are taken with
+NRD as usual.
 
 Both functions are resolved by RED4ext hash and checked byte for byte before anything is written. On a
 game build where either one differs, the plugin logs a line and patches nothing.
@@ -24,10 +24,10 @@ game build where either one differs, the plugin logs a line and patches nothing.
 A Photo Mode photo is built from a sweep of NxN sub-pixel samples, where N is the engine option
 `RayTracing/ReferenceScreenshot/SampleNumber` (game default 5). With **Ray Reconstruction preset F**,
 photos show thin horizontal bands every 64 pixels when N is 7 or more. Preset E is clean up to 16. This
-happens in the unmodified game too, since the capture always uses Ray Reconstruction.
+happens in the unmodified game too, which also takes its photos with Ray Reconstruction when it is on.
 
-Ultra+ raises the option to 8, 12 or 16 with its path tracing quality. To avoid the bands, use preset E,
-or set the option to 6 or less before taking a photo.
+If another mod raises the option above 6, use preset E, or set the option to 6 or less before taking a
+photo.
 
 ## Install
 
