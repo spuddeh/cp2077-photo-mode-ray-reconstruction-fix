@@ -1,0 +1,9 @@
+# Claude Code (local only - never commit; these are internal notes)
+CLAUDE.md
+
+# Build output
+plugin/build/
+
+# Editor
+.vscode/
+*.log
