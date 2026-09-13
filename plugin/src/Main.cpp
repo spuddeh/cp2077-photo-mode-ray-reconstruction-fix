@@ -2,7 +2,7 @@
 // Mod Name: Photo Mode Ray Reconstruction
 // Author: Spuddeh
 // Description: Keeps Ray Reconstruction on in Photo Mode.
-// File Version: 0.2.0
+// File Version: 0.3.0
 // Credits: RED4ext by WopsS.
 // ======================================================================================
 //
@@ -11,10 +11,6 @@
 // RR-available byte, which gates the frame's RR feature bit. Removing those two calls from each
 // leaves RR as the player had it; frame generation is still switched off and every restore stays.
 // Both functions are verified in full before either is written.
-//
-// A Photo Mode capture renders 144 frames on a sub-pixel jitter grid and averages them. RR keeps its
-// history across that ordered sweep and smears every sample, so on capture frames the history is
-// reset: each sample is reconstructed on its own and the average does the rest.
 
 #include <Windows.h>
 #include <RED4ext/RED4ext.hpp>
@@ -80,34 +76,6 @@ constexpr Site kSites[] = {
      kVisibilityEdits, 2},
 };
 
-// The function that fills and sends Streamline's constants (0x78933c on 2.31). Its only argument
-// that matters here is the Streamline manager. It sends reset = !manager[+0x1f0].
-constexpr uint32_t kHashSetConstants = 2155221092;
-constexpr uint8_t kSetConstantsPrologue[] = {0x40, 0x55, 0x53, 0x56, 0x57, 0x41, 0x56,
-                                             0x48, 0x8d, 0x6c, 0x24, 0xc9, 0x48, 0x81, 0xec, 0xd0};
-constexpr size_t kManagerHistoryValid = 0x1f0;
-// DLSS mode bytes: 0/1 while rendering normally, 1/0 only on capture frames.
-constexpr size_t kManagerModeCapture = 0x3e8;
-constexpr size_t kManagerModeNormal = 0x3e9;
-
-using SetConstantsFn = uint64_t (*)(void* aManager, uint32_t aFrame);
-SetConstantsFn g_originalSetConstants = nullptr;
-void* g_setConstantsTarget = nullptr;
-
-uint64_t DetourSetConstants(void* aManager, uint32_t aFrame)
-{
-    const auto* mgr = static_cast<uint8_t*>(aManager);
-    if (!mgr || mgr[kManagerModeCapture] != 1 || mgr[kManagerModeNormal] != 0)
-    {
-        return g_originalSetConstants(aManager, aFrame);
-    }
-    const uint8_t saved = mgr[kManagerHistoryValid];
-    static_cast<uint8_t*>(aManager)[kManagerHistoryValid] = 0;
-    const auto result = g_originalSetConstants(aManager, aFrame);
-    static_cast<uint8_t*>(aManager)[kManagerHistoryValid] = saved;
-    return result;
-}
-
 const RED4ext::v1::Sdk* g_sdk = nullptr;
 RED4ext::v1::PluginHandle g_handle = nullptr;
 
@@ -167,23 +135,6 @@ State Inspect(const Site& aSite, const uint8_t* aFn)
     return State::Unknown;
 }
 
-void HookCaptureReset()
-{
-    const auto target = reinterpret_cast<uint8_t*>(ResolveByHash(kHashSetConstants));
-    if (!target || std::memcmp(target, kSetConstantsPrologue, sizeof(kSetConstantsPrologue)) != 0)
-    {
-        Log("the Streamline constants function does not match - captures keep RR history (expect banding)");
-        return;
-    }
-    if (!g_sdk->hooking->Attach(g_handle, target, &DetourSetConstants, reinterpret_cast<void**>(&g_originalSetConstants)))
-    {
-        Log("could not hook the Streamline constants function - captures keep RR history (expect banding)");
-        return;
-    }
-    g_setConstantsTarget = target;
-    Log("capture frames reset Ray Reconstruction history per sample");
-}
-
 void Patch()
 {
     uint8_t* fns[2] = {};
@@ -225,7 +176,6 @@ void Patch()
         }
     }
     Log("patched: Photo Mode no longer switches Ray Reconstruction off");
-    HookCaptureReset();
 }
 } // namespace
 
@@ -233,7 +183,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::v1::PluginInfo* aInfo)
 {
     aInfo->name = L"PhotoModeRayReconstruction";
     aInfo->author = L"Spuddeh";
-    aInfo->version = RED4EXT_V1_SEMVER(0, 2, 0);
+    aInfo->version = RED4EXT_V1_SEMVER(0, 3, 0);
     aInfo->runtime = RED4EXT_V1_RUNTIME_VERSION_INDEPENDENT;
     aInfo->sdk = RED4EXT_V1_SDK_VERSION_CURRENT;
 }
@@ -251,10 +201,6 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::v1::PluginHandle aHandle,
         g_sdk = aSdk;
         g_handle = aHandle;
         Patch();
-    }
-    else if (aReason == RED4ext::v1::EMainReason::Unload && g_setConstantsTarget)
-    {
-        aSdk->hooking->Detach(aHandle, g_setConstantsTarget);
     }
     return true;
 }
