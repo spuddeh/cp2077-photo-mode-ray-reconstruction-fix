@@ -25,16 +25,16 @@ To confirm it is working, open [font=Courier New]red4ext\logs\[/font] after laun
 Delete that folder. No save cleanup is needed.
 [line]
 [color=#ffff00][size=5][b]Known issue: banded photos[/b][/size][/color]
-With Ray Reconstruction [b]preset F[/b], photos can show thin horizontal bands and the screen flashes while the photo is taken. This happens when the capture sample setting [font=Courier New]RayTracing/ReferenceScreenshot/SampleNumber[/font] is 7 or more. The game default is 5. It happens without this mod too.
+With Ray Reconstruction [b]preset F[/b], photos can show thin horizontal bands and the screen flashes while the photo is taken. This happens when the capture sample setting [font=Courier New]RayTracing/ReferenceScreenshot/SampleNumber[/font] is 7 or more. The game default is 5. It happens without this mod too. If the bands come back after restarting the game, run the command again.
 
-To avoid it, use Ray Reconstruction preset E, or set the value back to 5 from the Cyber Engine Tweaks console before taking photos:
-[code]GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5)[/code]
+To avoid it, use Ray Reconstruction preset E, or paste this into the Cyber Engine Tweaks console before taking photos. It sets the value to 5 and prints the new value:
+[code]GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5) print("Photo Mode capture samples set to " .. GameOptions.GetInt("RayTracing/ReferenceScreenshot", "SampleNumber") .. " (6 or less avoids banding with RR preset F)")[/code]
 
 [color=#ffff00][size=4][b]With In-Game Photomode Tweaks (IGPT)[/b][/size][/color]
-IGPT photos use a different setting, [font=Courier New]Editor/Recording/HighResolutionScreenshot_MS_Count[/font], which is 8 by default. Without this mod IGPT photos are taken with NRD and do not band. With this mod they are taken with Ray Reconstruction, so on [b]preset F[/b] they band at the default of 8.
+IGPT photos use a different setting, [font=Courier New]Editor/Recording/HighResolutionScreenshot_MS_Count[/font], which is 8 by default. Without this mod IGPT photos are taken with NRD and do not band. With this mod they are taken with Ray Reconstruction, so on [b]preset F[/b] they band at 7 or more, which includes the default of 8.
 
-To avoid it, use preset E, or set that value to 5 from the Cyber Engine Tweaks console before taking IGPT photos:
-[code]GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5)[/code]
+To avoid it, use preset E, or paste this into the Cyber Engine Tweaks console before taking IGPT photos. It sets the value to 5 and prints the new value:
+[code]GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5) print("IGPT capture samples set to " .. GameOptions.GetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count") .. " (6 or less avoids banding with RR preset F)")[/code]
 [line]
 [color=#ffff00][size=5][b]Compatibility[/b][/size][/color]
 [list]

@@ -83,7 +83,7 @@ counts match 8 + 2N² for every N tested:
 console changes the grid of the next photo:
 
 ```lua
-GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5)
+GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5) print("Photo Mode capture samples set to " .. GameOptions.GetInt("RayTracing/ReferenceScreenshot", "SampleNumber") .. " (6 or less avoids banding with RR preset F)")
 ```
 
 `RayTracing/ReferenceScreenshot/TileSize` (default 256) is a separate option. Halving it made no

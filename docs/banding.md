@@ -8,7 +8,8 @@ does not, and how it was measured.
 grid is **7 or more**. Preset E does not band at any grid size tested, up to 16. The grid comes from
 `RayTracing/ReferenceScreenshot/SampleNumber` for Photo Mode's own photos, and from
 `Editor/Recording/HighResolutionScreenshot_MS_Count` (default 8) for IGPT photos. The capture grid is
-described in [capture-pipeline.md](capture-pipeline.md).
+described in [capture-pipeline.md](capture-pipeline.md). The threshold is the same for both: 6 is clean and 7
+bands.
 
 It is not caused by this plugin. The unmodified game also captures with Ray Reconstruction when it is on,
 and banded at a grid of 12 with no plugin installed (reported).
@@ -59,8 +60,10 @@ driver override and are **reported**, not read from files.
 | 310.9.0 | E | 16 | | -0.10 | no |
 | 310.7.129 | E | 7, 8, 9, 10, 16 | 1920x1080 output | 0.20 to 0.30 | no |
 | 310.7.129 | E | 16 | | 0.07 | no |
-| not recorded | not recorded | 8 (MS_Count) | IGPT photo, with this plugin | 47.44 | **yes** |
-| not recorded | not recorded | 5 (MS_Count) | IGPT photo, with this plugin | 0.35 | no |
+| not recorded | F | 5 (MS_Count) | IGPT photo, with this plugin | 0.35 | no |
+| not recorded | F | 6 (MS_Count) | IGPT capture, with this plugin; no file saved | not scored | no flash (reported) |
+| not recorded | F | 7 (MS_Count) | IGPT photo, with this plugin | 52.88 | **yes** |
+| not recorded | F | 8 (MS_Count) | IGPT photo, with this plugin | 47.44 | **yes** |
 
 Output is 2560x1440 unless stated. `TileSize` was changed from the CET console, and reading it back
 returned 256 before the change and 128 after.
@@ -107,13 +110,13 @@ Streamline constants, so it changes more than the denoiser.
   mods set it higher:
 
   ```lua
-  GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5)
+  GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5) print("Photo Mode capture samples set to " .. GameOptions.GetInt("RayTracing/ReferenceScreenshot", "SampleNumber") .. " (6 or less avoids banding with RR preset F)")
   ```
 
 - For IGPT photos it is `HighResolutionScreenshot_MS_Count`, default 8, which bands on preset F:
 
   ```lua
-  GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5)
+  GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5) print("IGPT capture samples set to " .. GameOptions.GetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count") .. " (6 or less avoids banding with RR preset F)")
   ```
 
 - Resetting RR history on every capture frame softens the bands but makes the capture boil, and is not

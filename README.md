@@ -28,16 +28,20 @@ A Photo Mode photo is built from a sweep of NxN sub-pixel samples, where N is th
 photos show thin horizontal bands every 64 pixels when N is 7 or more. Preset E is clean up to 16. This
 happens in the unmodified game too, which also takes its photos with Ray Reconstruction when it is on.
 
-If another mod raises the option above 6, use preset E, or set the option to 6 or less before taking a
-photo.
+If another mod raises the option above 6, use preset E, or run this in the CET console before taking a
+photo. It sets the option to 5 and prints the new value:
+
+```lua
+GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5) print("Photo Mode capture samples set to " .. GameOptions.GetInt("RayTracing/ReferenceScreenshot", "SampleNumber") .. " (6 or less avoids banding with RR preset F)")
+```
 
 **IGPT.** In-Game Photomode Tweaks takes its photos with the same kind of sweep, but its N is
 `Editor/Recording/HighResolutionScreenshot_MS_Count`, default 8. Without this plugin IGPT photos use NRD and
-do not band. With it they use Ray Reconstruction, so on preset F they band at the default of 8. Use preset E,
-or set that option to 6 or less:
+do not band. With it they use Ray Reconstruction, so on preset F they band at 7 or more, including the default of 8.
+Use preset E, or run this in the CET console, which sets the option to 5 and prints the new value:
 
 ```lua
-GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5)
+GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5) print("IGPT capture samples set to " .. GameOptions.GetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count") .. " (6 or less avoids banding with RR preset F)")
 ```
 
 ## Install
