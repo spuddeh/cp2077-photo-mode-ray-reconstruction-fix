@@ -22,4 +22,4 @@
     without the plugin too.
   - IGPT photos: grid is `Editor/Recording/HighResolutionScreenshot_MS_Count` (default 8). Without the
     plugin IGPT captures with NRD and is clean, so for IGPT on preset F the plugin brings the banding in.
-    Measured 2026-09-14: 8x8 bands (score 47.44), 5x5 clean (0.35), RR on in both.
+    8x8 bands (score 47.44), 5x5 is clean (0.35), RR on in both.
