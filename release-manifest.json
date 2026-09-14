@@ -1,0 +1,24 @@
+{
+  "$schema_note": "Maps release artifacts to their Nexus Mods targets. To publish, create a GitHub Release tagged '<artifact>-v<version>' (e.g. photo-mode-ray-reconstruction-fix-v1.0.0). The release.yml workflow parses the tag, stages each contentDir into its installDir, zips the stage as '<fileBaseName>_v<version>.zip' so the game trees sit at the zip root, attaches the zip to the release, and uploads to Nexus. See RELEASING.md.",
+  "$paths_note": "contentDir = repo folder whose CONTENTS ship. installDir = path inside the zip those contents are placed at. This mod ships one game tree, red4ext, holding the prebuilt plugin DLL. The DLL is committed because CI does not build it: rebuild and copy it into red4ext/plugins/PhotoModeRayReconstructionFix/ before tagging.",
+  "$file_id_note": "The Nexus file id is NOT stored here. It lives in a REPOSITORY VARIABLE named NEXUS_FILE_ID_PHOTO_MODE_RAY_RECONSTRUCTION_FIX, set under Settings > Secrets and variables > Actions > Variables. It does not exist until the mod's first file has been uploaded to Nexus by hand, so a committed placeholder would be a committed lie. Get it from the mod page's Files tab > 'API Info' (Nexus labels it 'Group ID'). Do NOT use the file_id from the public v1 API - that is a different id space and the wrong value looks entirely plausible.",
+  "$mod_page_note": "nexus_mod_id is the number in the mod page URL.",
+  "artifacts": {
+    "photo-mode-ray-reconstruction-fix": {
+      "displayName": "Photo Mode Ray Reconstruction Fix",
+      "fileBaseName": "PhotoModeRayReconstructionFix",
+      "contentDir": [
+        "red4ext"
+      ],
+      "installDir": [
+        "red4ext"
+      ],
+      "nexus_mod_id": 33897,
+      "category": "main",
+      "primary_mod_manager_download": true,
+      "show_requirements_pop_up": true,
+      "update_mod_version": true,
+      "currentVersion": "1.0.0"
+    }
+  }
+}

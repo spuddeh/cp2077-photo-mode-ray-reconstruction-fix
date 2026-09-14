@@ -26,7 +26,7 @@ cannot come from CI. Do this once:
 3. **Read the file id and set it as a repository VARIABLE.** On the mod page open the **Files**
    tab > **API Info** and copy the id - Nexus labels it **"Group ID"** there. Set it as the
    repository variable **`NEXUS_FILE_ID_PHOTO_MODE_RAY_RECONSTRUCTION`** (Settings > Secrets and
-   variables > Actions > **Variables**). Put the mod page's number in `nexus_mod_id` in `release-manifest.json`.
+   variables > Actions > **Variables**). `nexus_mod_id` (33897) is already in `release-manifest.json`.
 
    > **It does not go in the repo.** The id does not exist until this first upload.
    >

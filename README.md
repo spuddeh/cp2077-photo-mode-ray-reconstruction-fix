@@ -47,7 +47,8 @@ GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5) p
 
 ## Install
 
-Not released yet. Copy `red4ext\plugins\PhotoModeRayReconstructionFix\` into the game folder. Requires
+Download from [Nexus Mods](https://www.nexusmods.com/cyberpunk2077/mods/33897). Install with a mod manager, or copy
+`red4ext\plugins\PhotoModeRayReconstructionFix\` into the game folder. Requires
 [RED4ext](https://www.nexusmods.com/cyberpunk2077/mods/2380).
 
 ## The probe
