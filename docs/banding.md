@@ -5,8 +5,10 @@ flashes streaked, green-noised frames while the photo is taken. This page record
 does not, and how it was measured.
 
 **Short version:** it happens when DLSS Ray Reconstruction **preset F** is used for a capture whose
-grid (`RayTracing/ReferenceScreenshot/SampleNumber`) is **7 or more**. Preset E does not band at any grid
-size tested, up to 16. The capture grid is described in [capture-pipeline.md](capture-pipeline.md).
+grid is **7 or more**. Preset E does not band at any grid size tested, up to 16. The grid comes from
+`RayTracing/ReferenceScreenshot/SampleNumber` for Photo Mode's own photos, and from
+`Editor/Recording/HighResolutionScreenshot_MS_Count` (default 8) for IGPT photos. The capture grid is
+described in [capture-pipeline.md](capture-pipeline.md).
 
 It is not caused by this plugin. The unmodified game also captures with Ray Reconstruction when it is on,
 and banded at a grid of 12 with no plugin installed (reported).
@@ -57,6 +59,8 @@ driver override and are **reported**, not read from files.
 | 310.9.0 | E | 16 | | -0.10 | no |
 | 310.7.129 | E | 7, 8, 9, 10, 16 | 1920x1080 output | 0.20 to 0.30 | no |
 | 310.7.129 | E | 16 | | 0.07 | no |
+| not recorded | not recorded | 8 (MS_Count) | IGPT photo, with this plugin | 47.44 | **yes** |
+| not recorded | not recorded | 5 (MS_Count) | IGPT photo, with this plugin | 0.35 | no |
 
 Output is 2560x1440 unless stated. `TileSize` was changed from the CET console, and reading it back
 returned 256 before the change and 128 after.
@@ -99,11 +103,17 @@ Streamline constants, so it changes more than the denoiser.
 ## Workarounds
 
 - Use Ray Reconstruction preset E.
-- Or keep `SampleNumber` at 6 or less. The game default is 5. Some mods set it higher; resetting it
-  before a photo works:
+- Or keep the grid at 6 or less. For Photo Mode's own photos that is `SampleNumber`, game default 5; some
+  mods set it higher:
 
   ```lua
   GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5)
+  ```
+
+- For IGPT photos it is `HighResolutionScreenshot_MS_Count`, default 8, which bands on preset F:
+
+  ```lua
+  GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5)
   ```
 
 - Resetting RR history on every capture frame softens the bands but makes the capture boil, and is not

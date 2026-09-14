@@ -34,6 +34,7 @@ RTTI types describe it:
 
 - reads `Editor/Recording/HighResolutionScreenshot_MS_Count` (default 8, clamped to 4 to 32). **That
   option does not affect a Photo Mode capture**: 8 and 16 give the same frame count and grid (measured).
+  It sets the grid of an IGPT capture instead (section 6).
 - sizes three targets from resolution times multiplier (`0x1c6bc80`)
 - saves the frame's `+0xf94` and sets it to 4
 - reads stack arguments up to the seventh. A hook that forwards only the four register arguments
@@ -108,14 +109,14 @@ constants logging was active (it switches on for 90 calls whenever a kind-4 fram
 line is weaker evidence than a logged value, so "not sent" is inferred. Either way, that capture differs
 in more than the denoiser.
 
-## 6. IGPT's capture path (measured, without this plugin)
+## 6. IGPT's capture path (measured)
 
 IGPT (In-Game Photomode Tweaks) moves Space from `PhotoModeTakeScreenshot_HiRes` to its own action,
 which calls its native `TakeFancyScreenshot(resolution, scale, format)`. Its settings (resolution,
 multiplier, force LOD0, PNG or EXR) are the fields of `rendSingleScreenShotData`, so it most likely
 issues that request (inferred; the plugin carries no type name to confirm it).
 
-Two IGPT photos (1920x1080 x2 and 2560x1440 x1), with this plugin not installed:
+**Without this plugin**, two IGPT photos (1920x1080 x2 and 2560x1440 x1):
 
 - capture frames have `+0xf94 = 4` and the DLSS mode bytes at `1/0`, like the vanilla capture, at IGPT's
   render resolution, with a different target layout
@@ -125,8 +126,18 @@ Two IGPT photos (1920x1080 x2 and 2560x1440 x1), with this plugin not installed:
 - neither photo bands
 - IGPT's PNG output is 8-bit RGBA with no colour-space chunk, so SDR
 
-No constants lines were logged during these captures either, so their jitter is not known. Whether IGPT captures with RR while this plugin is installed is not
-tested.
+No constants lines were logged during these captures, so their jitter is not known.
+
+**With this plugin**, IGPT at 2560x1440 x1:
+
+- capture frames have RR on, so **IGPT captures with Ray Reconstruction**
+- the sweep is the same ordered grid as the Photo Mode capture: 8 settle frames, then two NxN sweeps
+- **N is `Editor/Recording/HighResolutionScreenshot_MS_Count`, not `SampleNumber`.** With `SampleNumber` 6
+  and MS_Count 8 (both read from the console), the capture was 8x8 (136 frames). After setting MS_Count to 5,
+  with `SampleNumber` still 6, the next capture was 5x5 (58 frames).
+- at 8x8 the photos band on the 64-row grid described in [banding.md](banding.md), much more strongly than
+  Photo Mode photos; at 5x5 the photo is clean
+- the EXR output is float16 RGBA with a maximum value of 1.0: SDR data in a float file, not HDR
 
 ## Open questions
 
@@ -136,4 +147,4 @@ tested.
 3. What the DLSS mode bytes at `1/0` change beyond selecting a mode.
 4. What a LAYERED capture writes besides the colour image, and why Photo Mode uses it rather than
    `NORMAL_MULTISAMPLE`.
-5. Whether IGPT's EXR output holds values above SDR white.
+5. Whether MS_Count is clamped to 4 to 32 for IGPT captures, as it is in the finaliser.

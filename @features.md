@@ -15,8 +15,11 @@
 
 ## Not tested
 - Hardware without Ray Reconstruction.
-- IGPT with the plugin installed.
 
-## Known issue (not caused by the plugin)
-- RR preset F bands photos at `RayTracing/ReferenceScreenshot/SampleNumber` 7 or more; preset E is clean up
-  to 16. See `docs/banding.md`.
+## Known issue
+- RR preset F bands photos at a capture grid of 7 or more; preset E is clean up to 16. See `docs/banding.md`.
+  - Photo Mode's own photos: grid is `RayTracing/ReferenceScreenshot/SampleNumber` (default 5). Happens
+    without the plugin too.
+  - IGPT photos: grid is `Editor/Recording/HighResolutionScreenshot_MS_Count` (default 8). Without the
+    plugin IGPT captures with NRD and is clean, so for IGPT on preset F the plugin brings the banding in.
+    Measured 2026-09-14: 8x8 bands (score 47.44), 5x5 clean (0.35), RR on in both.
