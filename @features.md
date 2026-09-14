@@ -23,3 +23,7 @@
   - IGPT photos: grid is `Editor/Recording/HighResolutionScreenshot_MS_Count` (default 8). Without the
     plugin IGPT captures with NRD and is clean, so for IGPT on preset F the plugin brings the banding in.
     8x8 bands (score 47.44), 5x5 is clean (0.35), RR on in both.
+
+## Released
+- 1.0.0 on Nexus (mod 33897) and GitHub, 2026-09-14. First Nexus file uploaded by hand; later versions go
+  through `release.yml` once `NEXUS_FILE_ID_PHOTO_MODE_RAY_RECONSTRUCTION_FIX` and `NEXUSMODS_API_KEY` are set.
