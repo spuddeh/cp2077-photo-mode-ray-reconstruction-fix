@@ -119,6 +119,8 @@ Streamline constants, so it changes more than the denoiser.
   GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5) print("IGPT capture samples set to " .. GameOptions.GetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count") .. " (6 or less avoids banding with RR preset F)")
   ```
 
+- A value set from the console lasts until the game closes (reported), so the commands have to be run once
+  per session.
 - Resetting RR history on every capture frame softens the bands but makes the capture boil, and is not
   used.
 
