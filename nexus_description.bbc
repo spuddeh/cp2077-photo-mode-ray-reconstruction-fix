@@ -22,16 +22,16 @@ Install with your mod manager, or extract the archive into your Cyberpunk 2077 f
 To confirm it is working, open [font=Courier New]red4ext\logs\[/font] after launching the game. The newest [font=Courier New]photomoderayreconstructionfix[/font] log should contain a line starting with [font=Courier New]patched:[/font].
 
 [color=#ffff00][size=4][b]Uninstall[/b][/size][/color]
-Delete that folder. No save cleanup is needed.
+Delete that folder.
 [line]
 [color=#ffff00][size=5][b]Known issue: banded photos[/b][/size][/color]
-With Ray Reconstruction [b]preset F[/b], photos can show thin horizontal bands and the screen flashes while the photo is taken. This happens when the capture sample setting [font=Courier New]RayTracing/ReferenceScreenshot/SampleNumber[/font] is 7 or more. The game default is 5. It happens without this mod too.
+With Ray Reconstruction [b]preset F[/b] (Ray Reconstruction 4.5), photos can show thin horizontal bands and the screen flashes while the photo is taken. This happens when the capture sample setting [font=Courier New]RayTracing/ReferenceScreenshot/SampleNumber[/font] is 7 or more. The game default is 5. It happens without this mod too. [i]Some mods can set the [font=Courier New]SampleNumber[/font] value higher than the engine default of 5.[/i]
 
 To avoid it, use Ray Reconstruction preset E, or paste this into the Cyber Engine Tweaks console before taking photos. It sets the value to 5 and prints the new value. The game resets it on every launch, so run it once each time you play:
 [code]GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5) print("Photo Mode capture samples set to " .. GameOptions.GetInt("RayTracing/ReferenceScreenshot", "SampleNumber") .. " (6 or less avoids banding with RR preset F)")[/code]
 
-[color=#ffff00][size=4][b]With In-Game Photomode Tweaks (IGPT)[/b][/size][/color]
-IGPT photos use a different setting, [font=Courier New]Editor/Recording/HighResolutionScreenshot_MS_Count[/font], which is 8 by default. Without this mod IGPT photos are taken with NRD and do not band. With this mod they are taken with Ray Reconstruction, so on [b]preset F[/b] they band at 7 or more, which includes the default of 8.
+[color=#ffff00][size=4][b]With Hot-Sampled Photomode Renders (IGPT)[/b][/size][/color]
+[url=https://www.nexusmods.com/cyberpunk2077/mods/26318]IGPT[/url] photos use a different setting, [font=Courier New]Editor/Recording/HighResolutionScreenshot_MS_Count[/font], which is 8 by default. Without this fix IGPT photos are taken with NRD and do not band. With this fix they are taken with Ray Reconstruction, so on [b]preset F[/b] they band at 7 or more, which includes the default of 8.
 
 To avoid it, use preset E, or paste this into the Cyber Engine Tweaks console before taking IGPT photos. It sets the value to 5 and prints the new value. This one also resets on every launch:
 [code]GameOptions.SetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count", 5) print("IGPT capture samples set to " .. GameOptions.GetInt("Editor/Recording", "HighResolutionScreenshot_MS_Count") .. " (6 or less avoids banding with RR preset F)")[/code]
@@ -40,7 +40,7 @@ To avoid it, use preset E, or paste this into the Cyber Engine Tweaks console be
 [list]
 [*]No scripts and no archives, so it does not overlap with redscript, CET or ArchiveXL mods.[/*]
 [*]It does not change Photo Mode's scripts or menus, so mods that add poses, options or UI to Photo Mode are not affected.[/*]
-[*]In-Game Photomode Tweaks (IGPT) works with it, and its photos use Ray Reconstruction too. See the known issue above.[/*]
+[*][url=https://www.nexusmods.com/cyberpunk2077/mods/26318]Hot-Sampled Photomode Renders (IGPT)[/url] works with it, and its photos use Ray Reconstruction too. [b]See the known issue above[/b].[/*]
 [*]On a game version where the Photo Mode code differs, the mod changes nothing and says so in its log.[/*]
 [/list]
 [line]
