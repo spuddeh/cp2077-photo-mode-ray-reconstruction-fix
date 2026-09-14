@@ -73,6 +73,12 @@ frame by frame, the banding measurements, and the probe, with addresses and evid
 See `plugin/CMakeLists.txt` and `probe/plugin/CMakeLists.txt`. RED4ext.SDK is header-only; point the
 include path at a checkout.
 
+## Credits
+
+- [RED4ext](https://www.nexusmods.com/cyberpunk2077/mods/2380) by WopsS.
+- [sammilucia](https://www.nexusmods.com/cyberpunk2077/users/49024583) for being a sounding board and
+  confirming my crazy theories.
+
 ## License
 
 Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). You may use, modify, and share
