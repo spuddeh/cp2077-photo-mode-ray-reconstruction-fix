@@ -1,0 +1,50 @@
+[center][color=#ffff00][size=6][b]Photo Mode Ray Reconstruction Fix[/b][/size][/color]
+[i]Ray Reconstruction stays on in Photo Mode.[/i][/center]
+[line]
+[color=#ffff00][size=5][b]Description[/b][/size][/color]
+Opening Photo Mode switches DLSS Ray Reconstruction off and denoises with NRD instead, so the scene you frame is not denoised the way it is in gameplay. When the UI hides to take the photo, the game switches Ray Reconstruction back on for the capture, then off again.
+
+This mod removes the parts of the game's Photo Mode code that switch Ray Reconstruction off. It stays as you set it in the graphics settings, while you frame the shot and while the photo is taken. Everything else Photo Mode does is unchanged, including switching frame generation off while it is open.
+
+If Ray Reconstruction is off in your graphics settings, photos are taken with NRD as usual.
+[line]
+[color=#ffff00][size=5][b]Requirements[/b][/size][/color]
+[list]
+[*]Cyberpunk 2077 2.31[/*]
+[*][url=https://www.nexusmods.com/cyberpunk2077/mods/2380]RED4ext[/url][/*]
+[*]An NVIDIA graphics card with DLSS Ray Reconstruction[/*]
+[/list]
+[line]
+[color=#ffff00][size=5][b]Installation[/b][/size][/color]
+Install with your mod manager, or extract the archive into your Cyberpunk 2077 folder so you end up with:
+[code]Cyberpunk 2077\red4ext\plugins\PhotoModeRayReconstructionFix\PhotoModeRayReconstructionFix.dll[/code]
+
+To confirm it is working, open [font=Courier New]red4ext\logs\[/font] after launching the game. The newest [font=Courier New]photomoderayreconstructionfix[/font] log should contain a line starting with [font=Courier New]patched:[/font].
+
+[color=#ffff00][size=4][b]Uninstall[/b][/size][/color]
+Delete that folder. No save cleanup is needed.
+[line]
+[color=#ffff00][size=5][b]Known issue: banded photos[/b][/size][/color]
+With Ray Reconstruction [b]preset F[/b], photos can show thin horizontal bands and the screen flashes while the photo is taken. This happens when the capture sample setting [font=Courier New]RayTracing/ReferenceScreenshot/SampleNumber[/font] is 7 or more. The game default is 5. It happens without this mod too.
+
+To avoid it, use Ray Reconstruction preset E, or set the value back to 5 from the Cyber Engine Tweaks console before taking photos:
+[code]GameOptions.SetInt("RayTracing/ReferenceScreenshot", "SampleNumber", 5)[/code]
+[line]
+[color=#ffff00][size=5][b]Compatibility[/b][/size][/color]
+[list]
+[*]No scripts and no archives, so it does not overlap with redscript, CET or ArchiveXL mods.[/*]
+[*]It does not change Photo Mode's scripts or menus, so mods that add poses, options or UI to Photo Mode are not affected.[/*]
+[*]Not tested with In-Game Photomode Tweaks (IGPT).[/*]
+[*]On a game version where the Photo Mode code differs, the mod changes nothing and says so in its log.[/*]
+[/list]
+[line]
+[color=#ffff00][size=5][b]Source[/b][/size][/color]
+The source, and technical notes on how Photo Mode handles Ray Reconstruction and captures photos, are on [url=https://github.com/spuddeh/cp2077-photo-mode-ray-reconstruction-fix]GitHub[/url].
+[line]
+[color=#ffff00][size=5][b]Credits[/b][/size][/color]
+[list]
+[*][url=https://www.nexusmods.com/cyberpunk2077/mods/2380]RED4ext[/url] by WopsS.[/*]
+[/list]
+[line]
+[color=#ffff00][size=5][b]Disclaimer[/b][/size][/color]
+This mod was developed with the assistance of an LLM. All in-game testing and code validation was performed by a human. No rogue AIs were permitted through the Blackwall.

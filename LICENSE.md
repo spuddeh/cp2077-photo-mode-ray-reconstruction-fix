@@ -2,7 +2,7 @@
 
 <https://polyformproject.org/licenses/noncommercial/1.0.0>
 
-Required Notice: Copyright 2026 Spuddeh (https://github.com/spuddeh/cp2077-photo-mode-ray-reconstruction)
+Required Notice: Copyright 2026 Spuddeh (https://github.com/spuddeh/cp2077-photo-mode-ray-reconstruction-fix)
 
 ## Acceptance
 

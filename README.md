@@ -1,4 +1,4 @@
-# Photo Mode Ray Reconstruction
+# Photo Mode Ray Reconstruction Fix
 
 A RED4ext plugin for Cyberpunk 2077 2.31 that keeps DLSS Ray Reconstruction on in Photo Mode.
 
@@ -33,7 +33,7 @@ photo.
 
 ## Install
 
-Not released yet. Copy `red4ext\plugins\PhotoModeRayReconstruction\` into the game folder. Requires
+Not released yet. Copy `red4ext\plugins\PhotoModeRayReconstructionFix\` into the game folder. Requires
 [RED4ext](https://www.nexusmods.com/cyberpunk2077/mods/2380).
 
 ## The probe
