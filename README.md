@@ -82,11 +82,8 @@ include path at a checkout.
 
 ## License
 
-Licensed under the [PolyForm Strict License 1.0.0](LICENSE.md). You may use this mod and read its source
-for any **noncommercial** purpose. You may not share or re-upload it, or make changes or new works based on
-it, without permission. Commercial use, including paid mods or selling, is not permitted.
-
-Permission requests go through the [Nexus Mods page](https://www.nexusmods.com/cyberpunk2077/mods/33897).
+Licensed under the [MIT License](LICENSE). Use, change and share this mod and its source,
+including in your own mods. Keep the licence notice with any copy.
 
 ## Disclaimer
 
