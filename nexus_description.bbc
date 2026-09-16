@@ -7,6 +7,8 @@ Opening Photo Mode switches DLSS Ray Reconstruction off and denoises with NRD in
 This mod removes the parts of the game's Photo Mode code that switch Ray Reconstruction off. It stays as you set it in the graphics settings, while you frame the shot and while the photo is taken. Everything else Photo Mode does is unchanged, including switching frame generation off while it is open.
 
 If Ray Reconstruction is off in your graphics settings, photos are taken with NRD as usual.
+
+[compare before=https://staticdelivery.nexusmods.com/mods/3333/images/33897/33897-1789423399-1708030261.png]https://staticdelivery.nexusmods.com/mods/3333/images/33897/33897-1789423403-1407555818.png[/compare]
 [line]
 [color=#ffff00][size=5][b]Requirements[/b][/size][/color]
 [list]
